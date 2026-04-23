@@ -4,17 +4,15 @@ from django.core.validators import MinValueValidator, MaxValueValidator
 
 User = get_user_model()
 
-
 class Category(models.Model):
-    name = models.CharField(verbose_name='Название', max_length=100)
-    slug = models.SlugField(verbose_name='Slug', unique=True)
-    image = models.ImageField(verbose_name='Изображение', upload_to='categories/', null=True, blank=True)
-    description = models.TextField(verbose_name='Описание', blank=True, null=True)
-
+    name = models.CharField('Название', max_length=100)
+    slug = models.SlugField('Slug', unique=True)
+    image = models.ImageField('Изображение', upload_to='categories/', null=True, blank=True)
+    description = models.TextField('Описание', blank=True)
     parent = models.ForeignKey('self', on_delete=models.CASCADE, null=True, blank=True,
-                               related_name='children', verbose_name='Родительская категория')
-    is_active = models.BooleanField(verbose_name='Активна', default=True)
-    order = models.PositiveIntegerField(verbose_name='Порядок', default=0)
+                                related_name='children', verbose_name='Родительская категория')
+    is_active = models.BooleanField('Активна', default=True)
+    order = models.PositiveIntegerField('Порядок', default=0)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -25,28 +23,30 @@ class Category(models.Model):
     def __str__(self):
         return self.name
 
+
 class Product(models.Model):
     category = models.ForeignKey(Category, on_delete=models.PROTECT, related_name='products', verbose_name='Категория')
-    name = models.CharField(verbose_name='Название', max_length=200, unique=True)
-    slug = models.SlugField(verbose_name='Slug', unique=True)
-    description = models.TextField(verbose_name='Описание', blank=True)
-    price = models.DecimalField(verbose_name='Цена', max_digits=10, decimal_places=2, validators=[MinValueValidator(0)])
-    old_price = models.DecimalField(verbose_name='Старая цена', max_digits=10, decimal_places=2, null=True, blank=True)
-    stock = models.PositiveIntegerField(verbose_name='Остаток на складе', default=0)
-    unit = models.CharField(verbose_name='Единица измерения', max_length=20, default='шт',
-                            choices=[('шт', "Штука"), ("кг", "Килограмм"), ("г", "Грамм"),
-                                     ("л", "Литр"), ("мл", "Миллилитр"), ("упак", "Упаковка")])
-    is_active = models.BooleanField(verbose_name='Активен', default=True)
-    is_featured = models.BooleanField(verbose_name='Рекомендуемый', default=False)
-    is_new = models.BooleanField(verbose_name='Новинка', default=False)
-    created_at = models.DateTimeField(auto_now_add=True, verbose_name='Дата добавления')
-    updated_at = models.DateTimeField(auto_now=True, verbose_name='Дата обновления')
-
+    name = models.CharField('Название', max_length=200)
+    slug = models.SlugField('Slug', unique=True)
+    description = models.TextField('Описание', blank=True)
+    price = models.DecimalField('Цена', max_digits=10, decimal_places=2, validators=[MinValueValidator(0)])
+    old_price = models.DecimalField('Старая цена', max_digits=10, decimal_places=2, null=True, blank=True)
     image = models.ImageField('Изображение', upload_to='products/', null=True, blank=True)
+    stock = models.PositiveIntegerField('Остаток на складе', default=0)
+    unit = models.CharField('Единица измерения', max_length=20, default='шт',
+                             choices=[('шт', 'Штука'), ('кг', 'Килограмм'), ('г', 'Грамм'),
+                                      ('л', 'Литр'), ('мл', 'Миллилитр'), ('упак', 'Упаковка')])
+    is_active = models.BooleanField('Активен', default=True)
+    is_featured = models.BooleanField('Рекомендуемый', default=False)
+    is_new = models.BooleanField('Новинка', default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        verbose_name = "Товар"
-        verbose_name_plural = "Товары"
+        verbose_name = 'Товар'
+        verbose_name_plural = 'Товары'
+        ordering = ['-created_at']
+
 
     def __str__(self):
         return self.name
@@ -84,7 +84,6 @@ class ProductImage(models.Model):
         verbose_name_plural = 'Изображения товаров'
         ordering = ['order']
 
-
 class Review(models.Model):
     product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='reviews', verbose_name='Товар')
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='reviews', verbose_name='Пользователь')
@@ -101,6 +100,7 @@ class Review(models.Model):
     def __str__(self):
         return f'{self.user} — {self.product} ({self.rating}★)'
 
+
 class Wishlist(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='wishlist', verbose_name='Пользователь')
     product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='wishlisted_by', verbose_name='Товар')
@@ -110,6 +110,10 @@ class Wishlist(models.Model):
         verbose_name = 'Список желаний'
         verbose_name_plural = 'Списки желаний'
         unique_together = ('user', 'product')
+
+
+
+
 
 
 

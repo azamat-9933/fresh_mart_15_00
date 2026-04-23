@@ -1,6 +1,6 @@
 from django.contrib import admin
-
 from .models import Category, Product, ProductImage, Review, Wishlist
+
 
 @admin.register(Category)
 class CategoryAdmin(admin.ModelAdmin):
@@ -13,9 +13,12 @@ class CategoryAdmin(admin.ModelAdmin):
         return obj.products.count()
     products_count.short_description = 'Товаров'
 
+
 class ProductImageInline(admin.TabularInline):
     model = ProductImage
     extra = 3
+
+
 
 @admin.register(Product)
 class ProductAdmin(admin.ModelAdmin):

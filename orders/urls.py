@@ -15,3 +15,4 @@ urlpatterns = [
     path('orders/<int:pk>/', OrderDetailView.as_view(), name='order_detail'),
     path('orders/<int:pk>/cancel/', OrderCancelView.as_view(), name='order_cancel'),
 ]
+

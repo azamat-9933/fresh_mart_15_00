@@ -6,11 +6,18 @@ from drf_spectacular.utils import extend_schema
 
 from products.models import Product
 from .models import Cart, CartItem, Order, OrderItem
-from .serializers import (CartSerializer, AddToCartSerializer, CartItemSerializer,
-                          OrderListSerializer, OrderDetailSerializer, CreateOrderSerializer)
-# ======================================================================================================
+from .serializers import CartItemSerializer
 
-@extend_schema(tags=['cart'])
+from drf_spectacular.utils import extend_schema, OpenApiResponse
+from .serializers import (CartSerializer, AddToCartSerializer,
+                           OrderListSerializer, OrderDetailSerializer,
+                           CreateOrderSerializer)
+
+
+@extend_schema(
+    tags=['cart'],
+    responses={200: CartSerializer}
+)
 class CartView(APIView):
     permission_classes = (permissions.IsAuthenticated,)
 
@@ -18,7 +25,12 @@ class CartView(APIView):
         cart, _ = Cart.objects.get_or_create(user=request.user)
         return Response(CartSerializer(cart).data)
 
-@extend_schema(tags=['cart'])
+
+@extend_schema(
+    tags=['cart'],
+    request=AddToCartSerializer,
+    responses={200: CartSerializer}
+)
 class CartAddView(APIView):
     permission_classes = (permissions.IsAuthenticated,)
 
@@ -31,7 +43,7 @@ class CartAddView(APIView):
 
         try:
             product = Product.objects.get(pk=product_id, is_active=True)
-        except:
+        except Product.DoesNotExist:
             return Response({'error': 'Товар не найден'}, status=status.HTTP_404_NOT_FOUND)
 
         if product.stock < quantity:
@@ -56,9 +68,10 @@ class CartAddView(APIView):
             'cart': CartSerializer(cart).data
         })
 
+
 @extend_schema(tags=['cart'])
 class CartItemUpdateView(generics.RetrieveUpdateDestroyAPIView):
-    permission_classes = (permissions.IsAuthenticated, )
+    permission_classes = (permissions.IsAuthenticated,)
     serializer_class = CartItemSerializer
 
     def get_queryset(self):
@@ -70,13 +83,15 @@ class CartItemUpdateView(generics.RetrieveUpdateDestroyAPIView):
         if int(quantity) < 1:
             item.delete()
             return Response({'message': 'Товар удалён из корзины'})
-
         item.quantity = quantity
         item.save()
         return Response(CartItemSerializer(item).data)
 
-
-@extend_schema(tags=['cart'])
+@extend_schema(
+    tags=['cart'],
+    request=None,
+    responses={200: OpenApiResponse(description='Корзина очищена')}
+)
 class CartClearView(APIView):
     permission_classes = (permissions.IsAuthenticated,)
 
@@ -84,17 +99,24 @@ class CartClearView(APIView):
         Cart.objects.filter(user=request.user).delete()
         return Response({'message': 'Корзина очищена'})
 
-
 @extend_schema(tags=['orders'])
 class OrderListView(generics.ListAPIView):
     serializer_class = OrderListSerializer
     permission_classes = (permissions.IsAuthenticated,)
 
     def get_queryset(self):
-        return Order.objects.filter(user=self.request.user).prefetch_related('items')
+        # ← фикс AnonymousUser
+        if getattr(self, 'swagger_fake_view', False):
+            return Order.objects.none()
+        return Order.objects.filter(
+            user=self.request.user
+        ).prefetch_related('items')
 
-
-@extend_schema(tags=['orders'])
+@extend_schema(
+    tags=['orders'],
+    request=CreateOrderSerializer,
+    responses={201: OrderDetailSerializer}
+)
 class OrderCreateView(APIView):
     permission_classes = (permissions.IsAuthenticated,)
 
@@ -120,8 +142,6 @@ class OrderCreateView(APIView):
             delivery_price=delivery_price,
         )
 
-
-        # Create order items and reduce stock
         for cart_item in cart.items.select_related('product').all():
             OrderItem.objects.create(
                 order=order,
@@ -130,6 +150,7 @@ class OrderCreateView(APIView):
                 product_price=cart_item.product.price,
                 quantity=cart_item.quantity,
             )
+
             cart_item.product.stock -= cart_item.quantity
             cart_item.product.save()
 
@@ -145,14 +166,21 @@ class OrderCreateView(APIView):
 
 @extend_schema(tags=['orders'])
 class OrderDetailView(generics.RetrieveAPIView):
-    """Детали заказа"""
+
     serializer_class = OrderDetailSerializer
     permission_classes = (permissions.IsAuthenticated,)
 
     def get_queryset(self):
         return Order.objects.filter(user=self.request.user).prefetch_related('items')
 
+
+@extend_schema(
+    tags=['orders'],
+    request=None,
+    responses={200: OrderDetailSerializer}
+)
 class OrderCancelView(APIView):
+
     permission_classes = (permissions.IsAuthenticated,)
 
     def post(self, request, pk):
@@ -173,13 +201,3 @@ class OrderCancelView(APIView):
             order.save()
 
         return Response({'message': 'Заказ отменён', 'order': OrderDetailSerializer(order).data})
-
-
-
-
-
-
-
-
-
-

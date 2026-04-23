@@ -5,8 +5,7 @@ from django.core.validators import MinValueValidator
 User = get_user_model()
 
 class Cart(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE,
-                                related_name='cart', verbose_name="Пользователь")
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='cart', verbose_name='Пользователь')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -25,12 +24,17 @@ class Cart(models.Model):
     def total_price(self):
         return sum(item.total_price for item in self.items.all())
 
+
 class CartItem(models.Model):
-    cart = models.ForeignKey(Cart, on_delete=models.CASCADE, related_name='items', verbose_name='Корзина')
-    product = models.ForeignKey('products.Product', on_delete=models.CASCADE,
-                                verbose_name='Продукт')
-    quantity = models.PositiveIntegerField(verbose_name='Количество',
-                                           default=1, validators=[MinValueValidator(1)])
+    cart = models.ForeignKey(Cart, on_delete=models.CASCADE,
+                             related_name='items',
+                             verbose_name='Корзина')
+    product = models.ForeignKey('products.Product',
+                                on_delete=models.CASCADE,
+                                verbose_name='Товар')
+    quantity = models.PositiveIntegerField('Количество',
+                                           default=1,
+                                           validators=[MinValueValidator(1)])
     added_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -42,6 +46,7 @@ class CartItem(models.Model):
     def total_price(self):
         return self.product.price * self.quantity
 
+
 class Order(models.Model):
     STATUS_CHOICES = [
         ('pending', 'Ожидает подтверждения'),
@@ -49,35 +54,31 @@ class Order(models.Model):
         ('processing', 'Собирается'),
         ('shipped', 'В доставке'),
         ('delivered', 'Доставлен'),
-        ('cancelled', 'Отменён')
+        ('cancelled', 'Отменён'),
     ]
-
     PAYMENT_CHOICES = [
         ('cash', 'Наличные при получении'),
         ('card', 'Банковская карта'),
-        ('online', 'Онлайн оплата')
+        ('online', 'Онлайн оплата'),
     ]
-
     user = models.ForeignKey(User, on_delete=models.PROTECT, related_name='orders', verbose_name='Пользователь')
-    status = models.CharField(verbose_name='Статус', max_length=20, choices=STATUS_CHOICES, default='pending')
-    payment_method = models.CharField(verbose_name='Способ оплаты', max_length=20, choices=PAYMENT_CHOICES,
-                                      default='cash')
-    is_paid = models.BooleanField(verbose_name='Оплачен', default=False)
-
-    delivery_address = models.TextField(verbose_name='Адрес доставки')
-    delivery_phone = models.CharField(max_length=100, verbose_name='Телефон')
-    delivery_name = models.CharField(max_length=100, verbose_name='Имя получателя')
-    comment = models.TextField(verbose_name='Комментарий', blank=True)
-
+    status = models.CharField('Статус', max_length=20, choices=STATUS_CHOICES, default='pending')
+    payment_met = models.CharField('Способ оплаты', max_length=20, choices=PAYMENT_CHOICES, default='cash')
+    is_paid = models.BooleanField('Оплачен', default=False)
+    # Адрес доставки
+    delivery_address = models.TextField('Адрес доставки')
+    delivery_phone = models.CharField('Телефон', max_length=20)
+    delivery_name = models.CharField('Имя получателя', max_length=100)
+    comment = models.TextField('Комментарий', blank=True)
     delivery_latitude = models.TextField(verbose_name='Широта')
     delivery_longitude = models.TextField(verbose_name='Долгота')
 
-    total_price = models.DecimalField(verbose_name='Итого', max_digits=12, decimal_places=2)
-    delivery_price = models.DecimalField(verbose_name='Стоимость доставки', max_digits=8, decimal_places=2,
-                                         default=0)
+    # Суммы
+    total_price = models.DecimalField('Итого', max_digits=12, decimal_places=2)
+    delivery_price = models.DecimalField('Стоимость доставки', max_digits=8, decimal_places=2, default=0)
 
-    created_at = models.DateTimeField(auto_now_add=True, verbose_name='Дата создания')
-    updated_at = models.DateTimeField(auto_now=True, verbose_name='Дата обновления')
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
         verbose_name = 'Заказ'
@@ -85,7 +86,7 @@ class Order(models.Model):
         ordering = ['-created_at']
 
     def __str__(self):
-        return f'Заказ #{self.pk} - {self.user}'
+        return f'Заказ #{self.pk} — {self.user}'
 
     @property
     def grand_total(self):
@@ -106,14 +107,4 @@ class OrderItem(models.Model):
     @property
     def total_price(self):
         return self.product_price * self.quantity
-
-
-
-
-
-
-
-
-
-
 

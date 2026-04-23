@@ -1,14 +1,12 @@
+from django.contrib.auth.models import AbstractUser
 from django.db import models
 
-from django.contrib.auth.models import AbstractUser
-
-
 class User(AbstractUser):
-    phone = models.CharField(verbose_name="Телефон", max_length=20, blank=True)
-    address = models.TextField(verbose_name='Адрес доставки', blank=True)
-    avatar = models.ImageField(verbose_name='Аватар', upload_to='avatars/', null=True, blank=True)
-    birth_date = models.DateTimeField(verbose_name='Дата рождения', null=True, blank=True)
-    created_at = models.DateTimeField(auto_now_add=True)
+    phone = models.CharField(max_length=20, blank=True, verbose_name='Телефон')
+    address = models.TextField(blank=True, verbose_name='Адрес доставки')
+    avatar = models.ImageField(upload_to='avatars/', verbose_name='Аватар', null=True, blank=True)
+    birth_date = models.DateTimeField(null=True, blank=True, verbose_name='Дата рождения')
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name='Дата регистрации')
 
     class Meta:
         verbose_name = 'Пользователь'
@@ -16,3 +14,6 @@ class User(AbstractUser):
 
     def __str__(self):
         return self.get_full_name() or self.username
+
+
+
