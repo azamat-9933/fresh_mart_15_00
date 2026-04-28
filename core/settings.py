@@ -178,7 +178,7 @@ JAZZMIN_SETTINGS = {
 
     # List of model admins to search from the search bar, search bar omitted if excluded
     # If you want to use a single search field you dont need to use a list, you can use a simple string
-    "search_model": ["auth.User", "auth.Group"],
+    "search_model": ["auth.user", "auth.group"],
 
     # Field name on user model that contains avatar ImageField/URLField/Charfield or a callable that receives the user
     "user_avatar": None,
@@ -197,7 +197,7 @@ JAZZMIN_SETTINGS = {
         {"name": "Support", "url": "https://github.com/farridav/django-jazzmin/issues", "new_window": True},
 
         # model admin to link to (Permissions checked against model)
-        {"model": "auth.User"},
+        {"model": "auth.user"},
 
         # App with dropdown menu to all its models pages (Permissions checked against models)
         {"app": "books"},
@@ -284,6 +284,7 @@ JAZZMIN_SETTINGS = {
     "changeform_format_overrides": {"auth.user": "collapsible", "auth.group": "vertical_tabs"},
     # Add a language dropdown into the admin
     "language_chooser": False,
+    "default_theme_mode": "auto"
 }
 
 JAZZMIN_UI_TWEAKS = {
@@ -307,7 +308,7 @@ JAZZMIN_UI_TWEAKS = {
     "sidebar_nav_legacy_style": False,
     "sidebar_nav_flat_style": False,
     "theme": "darkly",
-    "dark_mode_theme": None,
+    "dark_mode_theme": "light",
     "button_classes": {
         "primary": "btn-primary",
         "secondary": "btn-secondary",
